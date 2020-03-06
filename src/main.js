@@ -7,6 +7,8 @@ import './plugins/axios'
 import './plugins/element.js'
 import './plugins/nprogress'
 
+import "./assets/scss/main.scss"
+
 Vue.config.productionTip = false
 
 new Vue({
