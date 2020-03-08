@@ -22,40 +22,39 @@ router.beforeEach(async (to, form, next) => {
     return whiteList.indexOf(to.path) !== -1 ? next() : next(`login?redirect=${to.path}`)
   }
 
+
   // 有 token 自动登录首页
   if (to.path === '/login') {
-    return next({ path: '/' })
+    return next({ path: '/', replace: true })
   }
 
   // 确认用户角色
-  const hasRole = store.getters.role && (store.getters.role !== -1)
+  const hasUser = store.getters.id
 
-  if (hasRole) {
+  if (hasUser) {
     return next()
   }
 
-
   try {
     // 获取用户信息
-    const { role } = await store.dispatch('user/getInfo')
-
+    await store.dispatch('user/getInfo')
     // 基于角色生成可访问的路由
-    const accessRoutes = await store.dispatch('permission/generateRoutes', role)
+    // const accessRoutes = await store.dispatch('permission/generateRoutes', role)
 
     // 动态添加可访问路由
-    router.addRoutes(accessRoutes)
+    // router.addRoutes(accessRoutes)
 
     // 确保 addRoutes 完整的 hack 方法
     // 设置 replace:true, 保证导航不留下历史记录
-    next({ ...to, replace: true })
+    return next()
   } catch (error) {
     // 删除 token 并 跳转到 login 页面 重新登录
     // 1. token 过期
     // 2. 非法 token
     await store.dispatch('user/resetToken')
     Message.error(error || 'System Error')
-    next(`/login?redirect=${to.path}`)
     nprogress.done()
+    return next(`/login?redirect=${to.path}`)
   }
 });
 
